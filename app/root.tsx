@@ -1,3 +1,4 @@
+import type { LinksFunction } from "@remix-run/node";
 import {
   Form,
   Links,
@@ -5,6 +6,18 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+
+/**
+ * スタイルシートを指定する
+ */
+import appStylesHref from "./app.css?url";
+
+/**
+ * exportしたlinksが<head> ~ </head>内の<Links />の部分に<link>として展開される
+ */
+export const links: LinksFunction = () => [
+  { rel: "stylesheet", href: appStylesHref },
+];
 
 export default function App() {
   return (
