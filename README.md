@@ -1,37 +1,36 @@
 # Remix Tutorial(30min) hands-on
 
-## `URLSearchParaams` and `GET` Submissions
+## Adding Search Spiner
 
-Formの`method=GET`の際の`URLSearchParams`からのデータ取り出し方法について[チュートリアル](https://remix.run/docs/en/main/start/tutorial#urlsearchparams-and-get-submissions)に従って実装しながら確認します。
+[チュートリアル](https://remix.run/docs/en/main/start/tutorial#adding-search-spinner)に従い検索窓にスピナーを追加します。
 
-`method=GET`なので、loader関数で処理します。
+GETのフォーム送信の場合、`formData`は空になり、`navigation.location.search`にデータが反映されます。
 
-リクエストからURLパラメータを取り出す
+（参考）[navigation.formData](https://remix.run/docs/en/main/hooks/use-navigation#navigationformdata)
+
 ```
-  const url = new URL(request.url);
+  const searching =
+    navigation.location &&
+    new URLSearchParams(navigation.location.search).has(
+      "q"
+    );
 ```
 
-URLパラメータから特定の値を取り出す
+検索窓に入力し結果取得できるまでの間、`navigation.state`は`loading`となっているため、コンタクトカード表示領域がローディング表示になってしまっている。この対策のために`searching`を使う。
+
 ```
-  const q = url.searchParams.get("q");
+        <div
+          className={
+            navigation.state === "loading" && !searching
+              ? "loading"
+              : ""
+          }
+          id="detail"
+        >
 ```
 
-## Synchronizing URLs to Form State
+## Managing the History Stack
 
-下記のUX上の課題について[チュートリアル](https://remix.run/docs/en/main/start/tutorial#synchronizing-urls-to-form-state)に従って対応します。
+検索窓でキー入力するたびに履歴に登録されるので、[チュートリアル](https://remix.run/docs/en/main/start/tutorial#managing-the-history-stack)に従い必要以上に履歴が登録されるのを停止します。
 
-1. ブラウザ「戻る」ボタンをクリックしたとき検索窓に値が入っていてもフィルターされていない状態でサイドバーにリストが表示される
-2. ブラウザ「更新」し再読み込みした際にURLにはフィルタ条件が残っているが検索窓には何も表示されていない状態になる
-
-### 対策１
-
-`loader`関数から`q`も戻しフォームのデフォルト値としてセットする
-
-### 対策2
-
-検索窓の値とURLSearchParamsを同期する
-
-## Submitting `Form`'s onChange
-
-検索窓の文字が変わる毎に絞り込み検索ができるように[チュートリアル](https://remix.run/docs/en/main/start/tutorial#submitting-forms-onchange)に従って対応します。
 

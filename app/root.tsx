@@ -95,6 +95,17 @@ export default function App() {
   const submit = useSubmit();
 
   /**
+   * 検索窓で検索中かどうかのフラグ
+   * GETフォーム送信の場合はnavigation.location.searchに
+   * フォームデータが反映される
+   */
+  const searching =
+    navigation.location && 
+    new URLSearchParams(navigation.location.search).has(
+      "q"
+    );
+
+  /**
    * 入力値とURLParamsを同期する
    */
   useEffect(() => {
@@ -118,7 +129,12 @@ export default function App() {
           <div>
             <Form
               id="search-form"
-              onChange={(event) => submit(event.currentTarget)}
+              onChange={(event) => {
+                const isFirstSearch = q === null;
+                submit(event.currentTarget, {
+                  replace: !isFirstSearch
+                })
+              }}
               role="search"
             >
               <input
@@ -128,8 +144,13 @@ export default function App() {
                 type="search"
                 name="q"
                 defaultValue={q || ""}
+                className={searching ? "loading" : ""}
               />
-              <div id="search-spinner" aria-hidden hidden={true} />
+              <div
+                id="search-spinner"
+                aria-hidden
+                hidden={!searching} 
+              />
             </Form>
             <Form method="post">
               <button type="submit">New</button>
@@ -175,7 +196,9 @@ export default function App() {
         </div>
         <div
           className={
-            navigation.state === "loading" ? "loading" : ""
+            navigation.state === "loading" && !searching
+              ? "loading"
+              : ""
           }
           id="detail"
         >
