@@ -1,36 +1,17 @@
 # Remix Tutorial(30min) hands-on
 
-## Adding Search Spiner
+## `Form`s Without Navigation
 
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#adding-search-spinner)に従い検索窓にスピナーを追加します。
+ポップアップや動的なフォームなどページ遷移を持たないデータのフェッチや、ページ遷移せずにデータを`action`関数に送信したい場合には、[useFetcher](https://remix.run/docs/en/main/hooks/use-fetcher)を利用します。
 
-GETのフォーム送信の場合、`formData`は空になり、`navigation.location.search`にデータが反映されます。
+`useFetcher`はページ遷移しないで、`action`関数や`loader`関数とデータのやり取りができます。
 
-（参考）[navigation.formData](https://remix.run/docs/en/main/hooks/use-navigation#navigationformdata)
+[チュートリアル](https://remix.run/docs/en/main/start/tutorial#forms-without-navigation)に従って⭐️マークをON/OFFする機能を追加します。
 
-```
-  const searching =
-    navigation.location &&
-    new URLSearchParams(navigation.location.search).has(
-      "q"
-    );
-```
+## Optimistic UI
 
-検索窓に入力し結果取得できるまでの間、`navigation.state`は`loading`となっているため、コンタクトカード表示領域がローディング表示になってしまっている。この対策のために`searching`を使う。
+`fetcher.formData`を利用して、データ送信後データが実際に更新される前にUIに値をセットすることができます。更新が失敗すれば変更は破棄され元の状態に戻ります。
 
-```
-        <div
-          className={
-            navigation.state === "loading" && !searching
-              ? "loading"
-              : ""
-          }
-          id="detail"
-        >
-```
-
-## Managing the History Stack
-
-検索窓でキー入力するたびに履歴に登録されるので、[チュートリアル](https://remix.run/docs/en/main/start/tutorial#managing-the-history-stack)に従い必要以上に履歴が登録されるのを停止します。
+[チュートリアル](https://remix.run/docs/en/main/start/tutorial#optimistic-ui)に従って楽観的UIの機能を実装します。
 
 
