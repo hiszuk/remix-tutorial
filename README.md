@@ -1,48 +1,34 @@
 # Remix Tutorial(30min) hands-on
 
-## Client Side Routeing
+## URL Params in Loaders
 
-メニューリンクをクリックするたびにページ全体を読み直すのではなく、シングル・ページ・アプリケーションのように内部ルーティングで表示を切り替えれるように`<a href>`を`<Link>`コンポーネントに変更します。
+サイドバーの名前をクリックするとURL部分が実際のIDに切り替わることが確認できます。
 
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#client-side-routing)を参考に`app/root.tsx`を変更します。
+サイドバーで指定した人のコンタクトデータをカードに表示するために、URL部分に表示されたIDを利用します。
 
-## Loading Data
+IDを取り出すためには`URL Parameters`を利用します。
 
-コンポーネントへのデータ読み込みと読み込んだデータの利用は、`loader` と `useLoaderData` で行います。
+ファイル名`contacts.$contactId.tsx`に含まれる`$contactId`を使用して、IDを`params.contactId`で取り出すことができます。
 
-`loader`ファンクションをエクスポートすることで、データを読み込んでからコンポーネントをレンダリングするようにできます。
+[チュートリアル](https://remix.run/docs/en/main/start/tutorial#url-params-in-loaders)を参考に`app/routes/contacts.$contactId.tsx`を編集します。
 
-### サイドバーへのデータ読み込みと表示
+ポイントは`app/root.tsx`でデータ取得してサイドバーに表示した時とほぼ同じです。
 
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#loading-data)に従い、`app/root.rsx`にデータロード部分を追加します。
+- `loader`でデータを取得する
+- `useLoaderData()`で取得したデータを利用する
 
-チュートリアルのデータハンドリング用のモジュール`app/data.ts`からコンタクトリスト取得のコンポーネント`getContacts`をインポートします。
-```
-import { getContacts } from "./data";
-```
+違うのは、コンタクトデータ1件を取得するためにID指定が必要なので、`params.contactId`でID取得し、コンタクトデータを1件取得するための関数`getContact`の引数に渡すことです。
 
-`loader`ファンクションをエクスポートすることで、`app/root.tsx`レンダリング前にデータを取得します。
-```
-export const loader = async () => {
-  const contacts = await getContacts();
-  return json({ contacts });
-};
-```
+## Valodating Params and Throwing Response
 
-`useLoaderData()`フックは`loader`によって読み込まれたデータを取得できます。
-```
-  const { contacts } = useLoaderData();
-```
+先のコードのままでは`params.contactId`がundefinedの可能性があるので警告が表示されます。
 
-## Type Interface
+undefinedに対処するために`invariant`という関数を使うそうです。(詳細は各自調べてください・・)
 
-そのままではtypescriptの警告が出ますので、`typeof loader`を使用して`contact`型をを推論します。
-```
-  const { contacts } = useLoaderData<typeof loader>();
-```
+[チュートリアル](https://remix.run/docs/en/main/start/tutorial#validating-params-and-throwing-responses)を参考にundefinedの対処を行います。
 
 ### 動作確認
 
-下図のようにサイドバーにコンタクトリストが表示されます。
+サイドメニューの名前をクリックしたら、該当する人のコンタクトカードが表示されるようになります。
 
-![サイドバーにデータロード](https://remix.run/docs-images/contacts/07.webp)
+![実際のコンタクトカード表示](https://remix.run/docs-images/contacts/10.webp)
