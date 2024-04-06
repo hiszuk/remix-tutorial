@@ -19,7 +19,8 @@
 
 ### 動作確認
 
-http://localhost:5173/　にアクセスすると下図のような表示となります。
+http://localhost:5173/
+にアクセスすると下図のような表示となります。
 
 ![TOP画面](https://remix.run/docs-images/contacts/18.webp)
 
