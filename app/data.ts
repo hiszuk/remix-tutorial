@@ -79,6 +79,8 @@ export async function createEmptyContact() {
 }
 
 export async function getContact(id: string) {
+  // Pending UI検証用にデータ読み込みに1秒の遅れを仕込む
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   return fakeContacts.get(id);
 }
 

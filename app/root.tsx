@@ -2,13 +2,14 @@ import type { LinksFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
-  Link,
   Links,
   Meta,
+  NavLink,
   Outlet,
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useNavigation,
 } from "@remix-run/react";
 
 /**
@@ -54,6 +55,12 @@ export default function App() {
    * useLoaderData()フックはloaderによって読み込まれたデータを取得できます
    */
   const { contacts } = useLoaderData<typeof loader>();
+
+  /**
+   * useNavigation()フックはpending状態のナビゲーションを提供します
+   */
+  const navigation = useNavigation();
+
   
   return (
     <html lang="en">
@@ -87,7 +94,17 @@ export default function App() {
               <ul>
                 {contacts.map((contact) => (
                   <li key={contact.id}>
-                    <Link to={`contacts/${contact.id}`}>
+                    {/* 選択中のカードを強調表示する */}
+                    <NavLink
+                      className={({ isActive, isPending }) => 
+                        isActive
+                          ? "active"
+                          : isPending 
+                          ? "pending"
+                          : ""
+                      }
+                      to={`contacts/${contact.id}`}
+                    >
                       {contact.first || contact.last ? (
                         <>
                           {contact.first} {contact.last}
@@ -98,7 +115,7 @@ export default function App() {
                       {contact.favorite ? (
                         <span>★</span>
                       ) : null}
-                    </Link>
+                    </NavLink>
                   </li>
                 ))}
               </ul>
@@ -109,7 +126,12 @@ export default function App() {
             )}
           </nav>
         </div>
-        <div id="detail">
+        <div
+          className={
+            navigation.state === "loading" ? "loading" : ""
+          }
+          id="detail"
+        >
           <Outlet />
         </div>
 

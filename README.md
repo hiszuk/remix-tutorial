@@ -1,38 +1,37 @@
 # Remix Tutorial(30min) hands-on
 
-## Updating Data
+## Active Link Styling
 
-[チュートリアル]()に従いコンタクト編集ページ(`app/routes/contacts.$contactId_.edit.tsx`)を作成します。
+サイドバーで現在表示中のコンタクトデータがどれかわかるように [NavLink](https://remix.run/docs/en/main/components/nav-link)を導入します。
 
-`$contactId_`のように末尾に`_`を付けることで、`app/routes/contacts.$contactId.tsx`にネストしないコンポーネントとして扱われます。
+[チュートリアル](https://remix.run/docs/en/main/start/tutorial#active-link-styling)に従い、`<Link>`を`<NavLink>`に変更します。
 
-## Updating Contacts with `FormData`
-
-[チュートリアル]()に従い、`Save`ボタンをクリックするとコンタクトの入力フォームの内容でデータを更新する`action`関数を作成します。
-
-### 補足
-
-フォームに入力されたデータを[formData()](https://developer.mozilla.org/en-US/docs/Web/API/FormData)を利用して取り出す
-```
-  const formData = await request.formData();
-```
-
-取り出した入力データを更新用の変数に[Object.fromEntries](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/fromEntries)を利用して移送する
-```
-  const updates = Object.fromEntries(formData);
-```
-
-`redirect`はクライアントサイドのリダイレクトなのでスクロール位置やコンポーネント状態は保持される
-```
-  return redirect(`/contacts/${params.contactId}`);
-```
-
-## Redirecting new records to the edit page
-
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#redirecting-new-records-to-the-edit-page)に従い`New`ボタンをクリックしたらコンタクトカード編集ページが自動で開くようにします。
 
 ### 動作確認
 
-`New`ボタンクリックするとコンタクトカード編集ページに自動で遷移します。
+下図のような表示になります。
 
-![自動で新規編集に遷移](https://remix.run/docs-images/contacts/14.webp)
+![メニューハイライト](https://remix.run/docs-images/contacts/15.webp)
+
+## Global Pending UI
+
+[useNavigation](https://remix.run/docs/en/main/hooks/use-navigation)フックを使ってコンポーネントが読み込み中の状態を表現します。
+
+[チュートリアル](https://remix.run/docs/en/main/start/tutorial#global-pending-ui)に従い、コンタクトカード部分に読み込み中状態を設定します。
+
+### データ読み込みに遅れを仕込む
+
+Pending動作確認のため`app/data.ts`の`getContact`関数に1000msの遅れを仕込む
+
+```
+export async function getContact(id: string) {
+  // Pending UI検証用にデータ読み込みに1秒の遅れを仕込む
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  return fakeContacts.get(id);
+}
+```
+### 動作確認
+
+サイドバーで人を切り替える度に半透明のマスクがかかることがわかります。
+
+![Pending UI](https://remix.run/docs-images/contacts/16.webp)
