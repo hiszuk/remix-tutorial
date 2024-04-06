@@ -1,4 +1,8 @@
-import type { LinksFunction } from "@remix-run/node";
+import type {
+  LinksFunction,
+  LoaderFunctionArgs,
+} from "@remix-run/node";
+import { useEffect } from "react";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -10,6 +14,7 @@ import {
   ScrollRestoration,
   useLoaderData,
   useNavigation,
+  useSubmit,
 } from "@remix-run/react";
 
 /**
@@ -34,10 +39,32 @@ export const links: LinksFunction = () => [
 /**
  * loaderファンクションをエクスポートすることで
  * app/root.tsxレンダリング前にデータを取得します
+ * ?q=xxxで名前によるコンタクトデータの絞り込みに対応する
+ * URLパラメータをリクエストから取り出せるように引数を追加する
  */
-export const loader = async () => {
-  const contacts = await getContacts();
-  return json({ contacts });
+export const loader = async ({
+  request,
+}: LoaderFunctionArgs) => {
+  /**
+   * URLパラメータを取り出す
+   */
+  const url = new URL(request.url);
+
+  /**
+   * URLパラメータから"q"のパラメータの値を取り出す
+   */
+  const q = url.searchParams.get("q");
+
+  /**
+   * qに設定された名前と一部一致するリストを取得する
+   * q自体がない、または、qに何も設定されていない場合は全件取得
+   */
+  const contacts = await getContacts(q);
+
+  /**
+   * 戻り値にqを追加する
+   */
+  return json({ contacts, q });
 };
 
 /**
@@ -53,15 +80,30 @@ export const action = async () => {
 export default function App() {
   /**
    * useLoaderData()フックはloaderによって読み込まれたデータを取得できます
+   * 戻り値にqを追加し検索窓の初期値とする
    */
-  const { contacts } = useLoaderData<typeof loader>();
+  const { contacts, q } = useLoaderData<typeof loader>();
 
   /**
    * useNavigation()フックはpending状態のナビゲーションを提供します
    */
   const navigation = useNavigation();
 
-  
+  /**
+   * submitをプログラム的に制御するフックを導入
+   */
+  const submit = useSubmit();
+
+  /**
+   * 入力値とURLParamsを同期する
+   */
+  useEffect(() => {
+    const searchField = document.getElementById("q");
+    if (searchField instanceof HTMLInputElement) {
+      searchField.value = q || "";
+    }
+  }, [q]);
+
   return (
     <html lang="en">
       <head>
@@ -74,13 +116,18 @@ export default function App() {
         <div id="sidebar">
           <h1>Remix Contacts</h1>
           <div>
-            <Form id="search-form" role="search">
+            <Form
+              id="search-form"
+              onChange={(event) => submit(event.currentTarget)}
+              role="search"
+            >
               <input
                 id="q"
                 aria-label="Search contacts"
                 placeholder="Search"
                 type="search"
                 name="q"
+                defaultValue={q || ""}
               />
               <div id="search-spinner" aria-hidden hidden={true} />
             </Form>

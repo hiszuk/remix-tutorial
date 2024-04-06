@@ -1,35 +1,37 @@
 # Remix Tutorial(30min) hands-on
 
-## Deleting Records
+## `URLSearchParaams` and `GET` Submissions
 
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#deleting-records)に従って、コンタクトカードの`Delete`ボタンを実装していきます。
+Formの`method=GET`の際の`URLSearchParams`からのデータ取り出し方法について[チュートリアル](https://remix.run/docs/en/main/start/tutorial#urlsearchparams-and-get-submissions)に従って実装しながら確認します。
 
-`app/routes/contacts.$contactId.destroy.tsx`を作成します。
+`method=GET`なので、loader関数で処理します。
 
-### 動作確認
+リクエストからURLパラメータを取り出す
+```
+  const url = new URL(request.url);
+```
 
-コンタクトカードの`Delete`ボタンをクリックしてデータを削除できるようになりました。
+URLパラメータから特定の値を取り出す
+```
+  const q = url.searchParams.get("q");
+```
 
+## Synchronizing URLs to Form State
 
-## Index Routes
+下記のUX上の課題について[チュートリアル](https://remix.run/docs/en/main/start/tutorial#synchronizing-urls-to-form-state)に従って対応します。
 
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#index-routes)に従って、Top画面に表示するコンテンツを作成します。
+1. ブラウザ「戻る」ボタンをクリックしたとき検索窓に値が入っていてもフィルターされていない状態でサイドバーにリストが表示される
+2. ブラウザ「更新」し再読み込みした際にURLにはフィルタ条件が残っているが検索窓には何も表示されていない状態になる
 
-`app/routes/_index.tsx`を作成します。
+### 対策１
 
-### 動作確認
+`loader`関数から`q`も戻しフォームのデフォルト値としてセットする
 
-http://localhost:5173/
-にアクセスすると下図のような表示となります。
+### 対策2
 
-![TOP画面](https://remix.run/docs-images/contacts/18.webp)
+検索窓の値とURLSearchParamsを同期する
 
-## Cancel Button
+## Submitting `Form`'s onChange
 
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#cancel-button)に従って、[useNavigate()](https://remix.run/docs/en/main/hooks/use-navigate)フックを使って`Cancel`ボタンが押されたら一つ前の画面に戻る機能を実装します。
-
-
-### 動作確認
-
-コンタクトカード編集画面で`Cancel`ボタンをクリックすると元の表示画面に戻るようになります。
+検索窓の文字が変わる毎に絞り込み検索ができるように[チュートリアル](https://remix.run/docs/en/main/start/tutorial#submitting-forms-onchange)に従って対応します。
 
