@@ -19,8 +19,9 @@ import appStylesHref from "./app.css?url";
 /**
  * チュートリアルのデータハンドリング用のモジュールapp/data.tsから
  * コンタクトリスト取得のコンポーネントgetContactsをインポートします
+ * 空のコンタクトデータを追加するcreateEmptyContactもインポートします
  */
-import { getContacts } from "./data";
+import { createEmptyContact, getContacts } from "./data";
 
 /**
  * exportしたlinksが<head> ~ </head>内の<Links />の部分に<link>として展開される
@@ -36,6 +37,15 @@ export const links: LinksFunction = () => [
 export const loader = async () => {
   const contacts = await getContacts();
   return json({ contacts });
+};
+
+/**
+ * actionファンクションをエクスポートすることで
+ * fromのsubmit時に空のコンタクトデータを追加します
+ */
+export const action = async () => {
+  const contact = await createEmptyContact();
+  return json({ contact });
 };
 
 export default function App() {

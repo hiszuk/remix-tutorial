@@ -1,34 +1,45 @@
 # Remix Tutorial(30min) hands-on
 
-## URL Params in Loaders
+## Data Mutation
 
-サイドバーの名前をクリックするとURL部分が実際のIDに切り替わることが確認できます。
+[チュートリアル](https://remix.run/docs/en/main/start/tutorial#data-mutations)では簡単に`form`の動きについて触れられています。基本的には昔ながらの`form`で、`method`も`POST`か`GET`を使います。
 
-サイドバーで指定した人のコンタクトデータをカードに表示するために、URL部分に表示されたIDを利用します。
+通常の`form`と異なるところは、リクエストを直接サーバーに送るのではなく、クライアントサイドでルーティングされ`action`ファンクションに送ることです。
 
-IDを取り出すためには`URL Parameters`を利用します。
+この部分は重要ですので[CodeZineの記事](https://codezine.jp/article/detail/18232?p=2)を参考に少し詳しく見ていきたいと思います。
 
-ファイル名`contacts.$contactId.tsx`に含まれる`$contactId`を使用して、IDを`params.contactId`で取り出すことができます。
+### 記事でわかること
 
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#url-params-in-loaders)を参考に`app/routes/contacts.$contactId.tsx`を編集します。
-
-ポイントは`app/root.tsx`でデータ取得してサイドバーに表示した時とほぼ同じです。
-
-- `loader`でデータを取得する
-- `useLoaderData()`で取得したデータを利用する
-
-違うのは、コンタクトデータ1件を取得するためにID指定が必要なので、`params.contactId`でID取得し、コンタクトデータを1件取得するための関数`getContact`の引数に渡すことです。
-
-## Valodating Params and Throwing Response
-
-先のコードのままでは`params.contactId`がundefinedの可能性があるので警告が表示されます。
-
-undefinedに対処するために`invariant`という関数を使うそうです。(詳細は各自調べてください・・)
-
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#validating-params-and-throwing-responses)を参考にundefinedの対処を行います。
+- Remixでは`<form>`要素を薄くラップした`<Form>`コンポーネントを使用する
+- submit時はサーバーに直接データを送信するのではなく、`action`ファンクションにデータが送信される
+- データ送信完了後は`<form>`によるHTMLフォームではページのリロードが発生するが、Remixではシングルページアプリケーションの挙動となりリロードは発生しない
+- 送信完了後は画面表示用のJSONデータを非同期通信で取得し、Reactの状態更新として流し込まれるので更新された部分のみ再描画される
 
 ### 動作確認
 
-サイドメニューの名前をクリックしたら、該当する人のコンタクトカードが表示されるようになります。
+実際にサイドバーの`New`ボタンをクリックすると起こることを確認しましょう。
 
-![実際のコンタクトカード表示](https://remix.run/docs-images/contacts/10.webp)
+`new`ボタンに該当するのは`app/root.tsx`の下記の部分です。
+
+```
+            <Form method="post">
+              <button type="submit">New</button>
+            </Form>
+```
+
+`New`ボタンをクリックすると下図の表示となります。
+
+![NEWボタン押下](https://remix.run/docs-images/contacts/09.webp)
+
+## Creating Contacts
+
+[チュートリアル]()に従い`action`関数を`app/root.tsx`に追記します。
+
+### 動作確認
+
+再度`New`ボタンをクリックすると下図のように`No Name`が追加された状態でサイドバーが描画されます。
+
+![新規データ作成](https://remix.run/docs-images/contacts/11.webp)
+
+送信完了後にデータを自動的に読み込みサイドバーが再描画されたことがわかります。
+
