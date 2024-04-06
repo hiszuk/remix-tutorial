@@ -1,38 +1,69 @@
 # Remix Tutorial(30min) hands-on
 
-## The Root Route
+## The Contact Route UI
 
-`app/root.tsx` が最初にレンダリングされるコンポーネントになります。
+Remixにおけるルーティングは`app/routes`以下に配置したファイルのファイル名で行います。
 
-よって、一般的にはグローバルなレイアウトを設定することが多いです。
+（参考）[Route File Naming](https://remix.run/docs/en/main/file-conventions/routes)
 
-## Adding Stylesheets with `links`
+今回のチュートリアルでは`Dot Delimiters`のルールでルーティングをしています。
 
-`app/root.tsx`内の`head`部分に着目してください。
-
-```
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-      </head>
-```
-
-この`<Links />`というコンポーネントの部分に、`export`した`links`の部品が展開されます。
+- [Dot Delimiters](https://remix.run/docs/en/main/file-conventions/routes#dot-delimiters)
+- [Dynamic Segments](https://remix.run/docs/en/main/file-conventions/routes#dynamic-segments)
 
 ```
-import type { LinksFunction } from "@remix-run/node";
-// existing imports
-
-import appStylesHref from "./app.css?url";
-
-export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: appStylesHref },
-];
+ app/
+├── routes/
+│   ├── _index.tsx
+│   ├── about.tsx
+│   ├── concerts.$city.tsx
+│   └── concerts.trending.tsx
+└── root.tsx
 ```
 
-全てのrouteは`links`ファンクションをエクスポート可能で、それぞれが集められて、`app/root.tsx`内の`<Links />`コンポーネントに展開されます。
+| URL | ルーティング |
+| --- | --- |
+| / | app/routes/_index.tsx |
+| /about | app/routes/about.tsx |
+| /concerts/trending | app/routes/concerts.trending.tsx |
+| /concerts/salt-lake-city | app/routes/concerts.$city.tsx |
+| /concerts/san-diego | app/routes/concerts.$city.tsx |
 
-![スタイルシートがあたった画面](https://remix.run/docs-images/contacts/04.webp)
+IDなどURLの一部が動的に変わる場合(`Dynamic Segments`)は、`$`のプレフィックスを付けます。
+
+### コンタクトページの作成
+
+[チュートリアル](https://remix.run/docs/en/main/start/tutorial#the-contact-route-ui)に従い、コンタクトページを作成します。
+
+`app/routes/countacts.$contantId.tsx` を作成します。
+
+### 注意事項
+
+ソース中で現在うまく画像が生成できていないURLがあるので、別のものに置き換えておきます。
+
+```
+https://placekitten.com/g/200/200
+```
+↓
+```
+https://i.pravatar.cc/200
+```
+
+### 動作確認
+
+`/contacts/1` にアクセスしてみてください。何も表示されない(！)はずです。
+
+## Nested Routes and Outlets
+
+`app/routes/contatcs.`で始まるファイルは親(`app/root.tsx`)の子コンポーネントとして`<Outlet />`部分にレンダリングされます。
+
+### 子コンポーネントの配置
+
+[チュートリアル](https://remix.run/docs/en/main/start/tutorial#nested-routes-and-outlets)に従い`app/root.tsx`に`<Outlet />`を配置します。
+
+### 動作確認
+
+`/contacts/1` にアクセスしてみてください。今度は下のようなコンタクトカードが表示されましたね！
+
+![コンタクトカードサンプル](https://remix.run/docs-images/contacts/06.webp)
 
