@@ -7,121 +7,130 @@ Remix Tutorial の Advanced hands-on として以下の内容に挑戦します�
 3. storybookのテストランナーでコマンドラインからテストを起動する
 4. chromaticを設定してビジュアル・リグレッション・テストの環境を作る
 
-# 2. storybookのplay機能を使ってinteraction testを書く
+# 2. storybookのplay機能を使ってinteraction testを書く②
 
-## storybookのデモ削除
+## Contactのストーリーブック作成
 
-初期導入時にインストールされたデモ(`stories/`)を削除します。
+`app/routes/contacts.$contactId/contact.stories.tsx`を作成していきます。
 
-## 対象パスの変更
-
-storiesファイルの対象パスを`app/`以下に変更する。
-
-`.stories/main.ts`の`stories`部分を変更する。
-
-```
-  stories: [
-    "../app/**/*.stories.@(js|jsx|mjs|ts|tsx)",
-  ],
-```
-## _indexのストーリー作成
-
-`app/routes/_index/route.ts`のストーリーを作成します。
-
-`app/routes/_index/_index.stories.tsx`
 ```
 import type { Meta, StoryObj } from '@storybook/react';
 
-import Index from './route';
+import Contact from './route';
 
-const meta: Meta<typeof Index> = {
-  title: 'index',
-  component: Index,
+const meta: Meta<typeof Contact> = {
+  title: 'Contact',
+  component: Contact,
   tags: ['autodocs'],
 };
 
 export default meta;
-type Story = StoryObj<typeof Index>;
+type Story = StoryObj<typeof Contact>;
 
 export const Default: Story = {};
 ```
 
-```
-npm run storybook
-```
-
-![](docs/images/advanced-02.png)
-
-CSSが効いていないのでCSSを適用します。
-
-## CSSの適用
-
-Storybook公式ページの[Styling and CSS](https://storybook.js.org/docs/configure/styling-and-css)を参考に、`.storybook/preview.ts`を修正します。
+`process is not defined`というエラーが出るので、`vite-sb.config.ts`に設定を追加します。
 
 ```
-import type { Preview } from "@storybook/react";
-import '../app/app.css'
+import { defineConfig, loadEnv } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
-const preview: Preview = {
-  parameters: {
-    controls: {
-      matchers: {
-        color: /(background|color)$/i,
-        date: /Date$/i,
-      },
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  process.env = { ...process.env, ...env };
+  return {
+    plugins: [tsconfigPaths()],
+    define: {
+      'process.env': {},
     },
-  },
-};
-
-export default preview;
+  };
+});
 ```
 
-![CSS適用された！](docs/images/advanced-03.png)
-
-## Interaction tests設定
-
-playを使いテストを記述します。
-
-interactions addonをセットアップします。
+以下のようなエラーが表示されます。
 
 ```
-npm install @storybook/test @storybook/addon-interactions --save-dev
+Error: useLoaderData must be used within a data router.  See https://reactrouter.com/routers/picking-a-router.
 ```
 
-## interaction testsを書く
+これは`Remix`の`loader`関数や`action`関数をうまく起動できていないために発生しています。
 
-`app/routes/_index/_index.stories.tsx`
+エラーを解消するためにRemixのスタブを導入します。
 
-`play`を追加します。
+## createRemixStubの導入
+
+[Remixコンポーネントをテストする方法](https://zenn.dev/kyrice2525/articles/article_tech_019)の内容を参考にします。
+
+```
+npm install --save-dev @remix-run/testing
+```
+
+stubを使いカードを表示できるようにします。
+
+この際、本当の`loader`関数と`action`関数もimportすることで、処理の動作も確認することができます。
 
 ```
 import type { Meta, StoryObj } from '@storybook/react';
-import { within, expect } from '@storybook/test';
+import { createRemixStub } from '@remix-run/testing';
 
-import Index from './route';
+import Contact, {loader, action} from './route';
 
-const meta: Meta<typeof Index> = {
-  title: 'index',
-  component: Index,
+const meta: Meta<typeof Contact> = {
+  title: 'Contact',
+  component: Contact,
+  decorators: [
+    (story) => {
+      const remixStub = createRemixStub([
+        {
+          // 通常のコンタクトカード表示処理
+          path: "/contacts/:contactId",
+          action, // お気に入りON/OFFのアクションを設定
+          loader, // contactIdのデータを取得するローダーを設定
+          Component: () => story(), // Contactを指定
+        }
+      ]);
+      return remixStub({
+        // 表示する人のIDを指定する
+        initialEntries: ['/contacts/alex-anderson'],
+      })
+    }
+  ],
   tags: ['autodocs'],
 };
 
 export default meta;
-type Story = StoryObj<typeof Index>;
+type Story = StoryObj<typeof Contact>;
 
+export const Default: Story = {};
+```
+
+![コンタクトカード](docs/images/advanced-05.png)
+
+コンタクトカードのデータを読み込み表示することができました！
+
+## interaction testを書く
+
+### カードにデータが表示されること
+
+```
 export const Default: Story = {
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
 
-    await step('the docs at remix.run リンクが表示されること', async () => {
-      const element = canvas.getByRole('link');
-      expect(element.textContent).toEqual('the docs at remix.run');
-      expect(element.outerHTML).toEqual('<a href="https://remix.run">the docs at remix.run</a>')
-    })
+    await step('コンタクトカードが正しく表示されていること', async () => {
+      expect(await canvas.findByText('Alex Anderson')).toBeInTheDocument();
+      expect(canvas.getByText('@ralex1993')).toBeInTheDocument();
+      expect((canvas.getByRole('link')).outerHTML).toEqual('<a href="https://twitter.com/@ralex1993">@ralex1993</a>')
+      const buttons = canvas.getAllByRole('button');
+      expect(buttons.length).toEqual(3);
+      expect(buttons[0].textContent).toEqual('☆');
+      expect(buttons[1].textContent).toEqual('Edit');
+      expect(buttons[2].textContent).toEqual('Delete');
+      const img = canvas.getByRole('img');
+      expect(img.getAttribute('src')).toEqual('https://sessionize.com/image/df38-400o400o2-JwbChVUj6V7DwZMc9vJEHc.jpg');
+    });
   }
 };
 ```
 
-interaction test 実行状況が表示されます。
-
-![iteraction test結果](docs/images/advanced-04.png)
