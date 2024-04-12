@@ -11,12 +11,12 @@ import type {
 } from "@remix-run/node";
 import type { FunctionComponent } from "react";
 
-import type { ContactRecord } from "../data";
+import type { ContactRecord } from "../../data";
 /**
  * ID指定でコンタクトデータを1件取得する関数をインポートする
  * ⭐️マーク更新のための関数のインポートを追加
  */
-import { getContact, updateContact } from "../data";
+import { getContact, updateContact } from "../../data";
 
 /**
  * URL Paramsに表示されたcontactIdを取得して
