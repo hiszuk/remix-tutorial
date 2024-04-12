@@ -1,17 +1,73 @@
-# Remix Tutorial(30min) hands-on
+# Remix Tutorial Advanced hands-on
 
-## `Form`s Without Navigation
+Remix Tutorial の Advanced hands-on として以下の内容に挑戦します。
 
-ポップアップや動的なフォームなどページ遷移を持たないデータのフェッチや、ページ遷移せずにデータを`action`関数に送信したい場合には、[useFetcher](https://remix.run/docs/en/main/hooks/use-fetcher)を利用します。
+1. storybookを導入してコンポーネントのstoryを作る
+2. storybookのplay機能を使ってinteraction testを書く
+3. storybookのテストランナーでコマンドラインからテストを起動する
+4. chromaticを設定してビジュアル・リグレッション・テストの環境を作る
 
-`useFetcher`はページ遷移しないで、`action`関数や`loader`関数とデータのやり取りができます。
+# 1. storybookを導入してコンポーネントのstoryを作る
 
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#forms-without-navigation)に従って⭐️マークをON/OFFする機能を追加します。
+## storybookを導入する
 
-## Optimistic UI
+[Remix v2 に Storybookを導入してみた](https://zenn.dev/m_ryosuke/articles/868eacfc1870c0) を参考にstorybookを導入していきます。
 
-`fetcher.formData`を利用して、データ送信後データが実際に更新される前にUIに値をセットすることができます。更新が失敗すれば変更は破棄され元の状態に戻ります。
+### storybookをインストール
+```
+npx storybook init
+```
 
-[チュートリアル](https://remix.run/docs/en/main/start/tutorial#optimistic-ui)に従って楽観的UIの機能を実装します。
+下記のエラーが表示されるので対策していきます。
+```
+Running Storybook
 
+> storybook
+> storybook dev -p 6006 --initial-path=/onboarding --quiet
+
+@storybook/cli v8.0.8
+
+info => Starting manager..
+info => Starting preview..
+=> Failed to build the preview
+Error: The Remix Vite plugin requires the use of a Vite config file
+```
+
+### Storybook用のvite-sb.config.tsを生成
+
+`vite-sb.config.ts`を新規にプロジェクトルートに作成します。
+```
+import { defineConfig, loadEnv } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  process.env = { ...process.env, ...env };
+  return {
+    plugins: [tsconfigPaths()],
+  };
+});
+```
+
+### .storybook/main.ts の修正
+
+`.storybook/main.ts`の`framework`を以下のように修正します。
+
+```
+ framework: {
+   name: "@storybook/react-vite",
+   options: {
+     builder: {
+       viteConfigPath: 'vite-sb.config.ts',
+     }
+   },
+```
+
+再度storybookを起動します。
+
+```
+npm run storybook
+```
+
+![storybookデモ画面](docs/images/advanced-01.png)
 
