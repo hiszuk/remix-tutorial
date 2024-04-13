@@ -7,78 +7,70 @@ Remix Tutorial の Advanced hands-on として以下の内容に挑戦します�
 3. storybookのテストランナーでコマンドラインからテストを起動する
 4. chromaticを設定してビジュアル・リグレッション・テストの環境を作る
 
-# 2. storybookのplay機能を使ってinteraction testを書く②
+# 2. storybookのplay機能を使ってinteraction testを書く③
 
-## Contactのストーリーブック作成
+## Contactのボタン動作のテストを書く
 
-`app/routes/contacts.$contactId/contact.stories.tsx`を作成していきます。
+### お気に入りボタンON/OFF
+
+`ContactButton`という名前でストーリーを追加し、お気に入りボタンのON/OFFの動作確認をします。
 
 ```
-import type { Meta, StoryObj } from '@storybook/react';
+/**
+ * お気にりボタン、Editボタン、Deleteボタン押下時の動きをテスト
+ */
+export const ContactButton: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
 
-import Contact from './route';
+    // レンダリングが完了するまで待つ
+    await waitFor(() => {
+      expect(canvas.getAllByRole('button').length).toBe(3)
+    }, { timeout: 5000 });
 
-const meta: Meta<typeof Contact> = {
-  title: 'Contact',
-  component: Contact,
-  tags: ['autodocs'],
+    await step('お気に入りボタンON/OFF確認', async () => {
+      // お気に入りボタン要素の取得
+      const star = canvas.getAllByRole('button')
+        .find((el) => el.getAttribute('name') === 'favorite') as HTMLElement;
+      
+      // お気に入りボタンが取得できるか
+      expect(star).toBeInTheDocument();
+
+      // お気に入りボタンの初期値が"☆"か?
+      expect(star.textContent).toEqual('☆');
+
+      // お気に入りボタン押下
+      await userEvent.click(star);
+
+      // お気に入りボタンが"★"に変わるか?
+      expect(star.textContent).toEqual('★');
+
+      // お気に入りボタン押下
+      await userEvent.click(star);
+
+      // お気に入りボタンが"☆"に変わるか?
+      expect(star.textContent).toEqual('☆');
+    });
+  },
 };
-
-export default meta;
-type Story = StoryObj<typeof Contact>;
-
-export const Default: Story = {};
 ```
 
-`process is not defined`というエラーが出るので、`vite-sb.config.ts`に設定を追加します。
+### ダミーページとルートの追加
+
+`Edit`, `Delete`ボタン押下時の動作確認のため、`<Edit />`と`<Destroy />`のダミーコンポーネントを定義し、RemixStubのルーティングに`/contacts/:contactId/edit`と`/contacts/:contactId/destoroy`のパスを追加します。
 
 ```
-import { defineConfig, loadEnv } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
+// import ブロック
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  process.env = { ...process.env, ...env };
-  return {
-    plugins: [tsconfigPaths()],
-    define: {
-      'process.env': {},
-    },
-  };
-});
+const Edit = () => <div>Edit Page</div>
+const Destroy = () => <div>Destroy Page</div>
+
+// const meta ...
 ```
 
-以下のようなエラーが表示されます。
+下記のようにルートを追加する
 
 ```
-Error: useLoaderData must be used within a data router.  See https://reactrouter.com/routers/picking-a-router.
-```
-
-これは`Remix`の`loader`関数や`action`関数をうまく起動できていないために発生しています。
-
-エラーを解消するためにRemixのスタブを導入します。
-
-## createRemixStubの導入
-
-[Remixコンポーネントをテストする方法](https://zenn.dev/kyrice2525/articles/article_tech_019)の内容を参考にします。
-
-```
-npm install --save-dev @remix-run/testing
-```
-
-stubを使いカードを表示できるようにします。
-
-この際、本当の`loader`関数と`action`関数もimportすることで、処理の動作も確認することができます。
-
-```
-import type { Meta, StoryObj } from '@storybook/react';
-import { createRemixStub } from '@remix-run/testing';
-
-import Contact, {loader, action} from './route';
-
-const meta: Meta<typeof Contact> = {
-  title: 'Contact',
-  component: Contact,
   decorators: [
     (story) => {
       const remixStub = createRemixStub([
@@ -88,6 +80,19 @@ const meta: Meta<typeof Contact> = {
           action, // お気に入りON/OFFのアクションを設定
           loader, // contactIdのデータを取得するローダーを設定
           Component: () => story(), // Contactを指定
+        },
+        {
+          // Editボタン押下時のルート
+          path: '/contacts/:contactId/edit',
+          action: () => ({ redirect: '/' }), // ダミー
+          loader: () => ({ redirect: '/' }), // ダミー
+          Component: () => <Edit />,
+        },
+        {
+          // Deleteボタン押下時のルート
+          path: '/contacts/:contactId/destroy',
+          action: () => ({ redirect: '/' }), // ダミー
+          Component: () => <Destroy />,
         }
       ]);
       return remixStub({
@@ -96,41 +101,97 @@ const meta: Meta<typeof Contact> = {
       })
     }
   ],
-  tags: ['autodocs'],
-};
-
-export default meta;
-type Story = StoryObj<typeof Contact>;
-
-export const Default: Story = {};
 ```
 
-![コンタクトカード](docs/images/advanced-05.png)
+動作確認のために、`Edit`と`Delete`を押下し期待通りのダミーページに遷移することを確認する。
 
-コンタクトカードのデータを読み込み表示することができました！
-
-## interaction testを書く
-
-### カードにデータが表示されること
+### `Edit`押下後の動きの確認
 
 ```
-export const Default: Story = {
+/**
+ * Editボタン押下時の動きをテスト
+ */
+export const EditButton: Story = {
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
 
-    await step('コンタクトカードが正しく表示されていること', async () => {
-      expect(await canvas.findByText('Alex Anderson')).toBeInTheDocument();
-      expect(canvas.getByText('@ralex1993')).toBeInTheDocument();
-      expect((canvas.getByRole('link')).outerHTML).toEqual('<a href="https://twitter.com/@ralex1993">@ralex1993</a>')
-      const buttons = canvas.getAllByRole('button');
-      expect(buttons.length).toEqual(3);
-      expect(buttons[0].textContent).toEqual('☆');
-      expect(buttons[1].textContent).toEqual('Edit');
-      expect(buttons[2].textContent).toEqual('Delete');
-      const img = canvas.getByRole('img');
-      expect(img.getAttribute('src')).toEqual('https://sessionize.com/image/df38-400o400o2-JwbChVUj6V7DwZMc9vJEHc.jpg');
-    });
-  }
-};
+    // レンダリングが完了するまで待つ
+    await waitFor(() => {
+      expect(canvas.getAllByRole('button').length).toBe(3)
+    }, { timeout: 5000 });
+
+    // Editボタン要素の取得
+    const edit = canvas.getAllByRole('button')
+      .find((el) => el.textContent === 'Edit') as HTMLElement;
+
+    await step('Editボタンを押下するとEdit Pageに遷移すること', async () => {
+      // Editボタンをクリックする
+      await userEvent.click(edit);
+
+      // Edit Pageに遷移する
+      expect(await canvas.findByText('Edit Page')).toBeInTheDocument();
+    })
+  },
+}
 ```
 
+### `Delete`押下後の動きの確認
+
+`Delete`押下後にwindow.confirmがコールされているため制御ができなくなる。そこで、wndow.confirmをモックし、1回目は`Cancel`、2回目は`OK`を押したように振る舞うよう設定する。
+
+```
+/**
+ * Deleteボタン押下時の動きをテスト
+ */
+export const DeleteButton: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+
+    // window.confirmをモックする
+    const spy = spyOn(window, 'confirm')
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .mockImplementationOnce((_msg) => {
+        // まずCancelをクリック
+        return false
+      })
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .mockImplementationOnce((_msg) => {
+        // 次にOKをクリック
+        return true
+      })
+
+    // レンダリングが完了するまで待つ
+    await waitFor(() => {
+      expect(canvas.getAllByRole('button').length).toBe(3)
+    }, { timeout: 5000 });
+
+    // Deleteボタン要素の取得
+    const button = canvas.getAllByRole('button')
+      .find((el) => el.textContent === 'Delete') as HTMLElement;
+
+    // Cancelの場合
+    await step('Confirmをキャンセルした場合は元のページに留まること', async () => {
+      // Deleteボタンをクリックする
+      await userEvent.click(button);
+
+      // Confirmダイアログが開く
+      await expect(spy).toHaveBeenCalledWith('Please confirm you want to delete this record.');
+
+      // 元のページにとどまる
+      expect(await canvas.findByText('Alex Anderson')).toBeInTheDocument();
+    })
+
+    // OKの場合
+    await step('ConfirmをOKした場合はDestroyページに遷移すること', async () => {
+      // Deleteボタンをクリックする
+      await userEvent.click(button);
+
+      // Confirmダイアログが開く
+      await expect(spy).toHaveBeenCalledWith('Please confirm you want to delete this record.');
+
+      // 元のページにとどまる
+      expect(await canvas.findByText('Destroy Page')).toBeInTheDocument();
+    })
+  },
+}
+```
