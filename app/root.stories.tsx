@@ -1,19 +1,3 @@
-# Remix Tutorial Advanced hands-on
-
-Remix Tutorial の Advanced hands-on として以下の内容に挑戦します。
-
-1. ~~storybookを導入してコンポーネントのstoryを作る~~
-2. storybookのplay機能を使ってinteraction testを書く
-3. storybookのテストランナーでコマンドラインからテストを起動する
-4. chromaticを設定してビジュアル・リグレッション・テストの環境を作る
-
-# 2. storybookのplay機能を使ってinteraction testを書く⑤
-
-## root.tsxのテストを書く
-
-下記のようにテストコードを書く
-
-```
 import type { Meta, StoryObj } from '@storybook/react';
 import { createRemixStub } from '@remix-run/testing';
 import { expect, spyOn, userEvent, waitFor, within } from '@storybook/test';
@@ -272,4 +256,3 @@ export const NewContact: Story = {
     });
   },
 };
-```
