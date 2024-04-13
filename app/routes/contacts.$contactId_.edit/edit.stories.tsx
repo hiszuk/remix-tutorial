@@ -1,21 +1,10 @@
-# Remix Tutorial Advanced hands-on
+import type { Meta, StoryObj } from '@storybook/react';
+import { createRemixStub } from '@remix-run/testing';
+import { expect, userEvent, waitFor, within } from '@storybook/test';
 
-Remix Tutorial の Advanced hands-on として以下の内容に挑戦します。
+import EditContact, { loader, action } from './route';
+import Contact from '../contacts.$contactId/route';
 
-1. ~~storybookを導入してコンポーネントのstoryを作る~~
-2. storybookのplay機能を使ってinteraction testを書く
-3. storybookのテストランナーでコマンドラインからテストを起動する
-4. chromaticを設定してビジュアル・リグレッション・テストの環境を作る
-
-# 2. storybookのplay機能を使ってinteraction testを書く④
-
-## ContactID/editのテストを書く
-
-### meta部分
-
-テスト予定のルートを設定する
-
-```
 const meta: Meta<typeof EditContact> = {
   title: 'EditContact',
   component: EditContact,
@@ -49,11 +38,17 @@ const meta: Meta<typeof EditContact> = {
   ],
   tags: ['autodocs'],
 };
-```
 
-### 情報読み込みフォームに初期表示する
+export default meta;
+type Story = StoryObj<typeof EditContact>;
 
-```
+/**
+ * <h3>テストシナリオ</h3>
+ * <ul>
+ * <li>FORMに読み込んだ情報が初期値として表示されていることを確認</li>
+ * <li>SaveとCancelのボタンが表示されていることを確認</li>
+ * </ul>
+ */
 export const Default: Story = {
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
@@ -82,17 +77,20 @@ export const Default: Story = {
     })
   }
 };
-```
 
-### 編集->Cancel->編集->Save->戻し
-
-下記内容のテストを記述する
-
-- フォーム内容を編集しCancelボタンクリックで元のカードに戻ること
-- フォーム内容を編集しSaveボタンクリックで編集した内容が反映されたカードに遷移すること
-- フォーム内容を元の情報に戻しSaveボタンクリックで情報が元に戻ること
-
-```
+/**
+ * <h3>テストシナリオ</h3>
+ * <ul>
+ * <li>FORMにJon Doeを入力しCancelボタンをクリック<br />
+ * → 元のAlexの情報でコンタクトカードが表示される</li>
+ * <li>コンタクトカードでEditボタンをクリックし再度編集画面を表示</li>
+ * <li>FORMに再度Jon Doeを入力しSaveボタンをクリック<br />
+ * → 入力したJon Doeの内容でコンタクトカードが表示される</li>
+ * <li>元に戻すためにコンタクトカード画面でEditをクリックし編集画面を表示</li>
+ * <li>FORMに元のAlexの情報を入力してSaveボタンをクリック<br />
+ * → 元のAlexの情報でコンタクトカードが表示される</li>
+ * </ul>
+ */
 export const Edit: Story = {
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
@@ -247,4 +245,3 @@ export const Edit: Story = {
     });
   },
 };
-```
