@@ -72,16 +72,16 @@ const config: StorybookConfig = {
 export default config;
 ```
 
-## レポートツールをセットアップ
-
-```
-npx nyc report --reporter=lcov -t coverage/storybook --report-dir coverage/storybook
-```
-
 ## カバレージ実行
 
 ```
 npm run test-storybook -- --coverage
+```
+
+## レポートツール実行
+
+```
+npx nyc report --reporter=lcov -t coverage/storybook --report-dir coverage/storybook
 ```
 
 ブラウザでレポートを開いて確認します。
@@ -90,3 +90,21 @@ npm run test-storybook -- --coverage
 
 
 ![repot](docs/images/advanced-06.png)
+
+## スクリプトに追加
+
+`package.json`
+
+```
+  "scripts": {
+    "build": "remix vite:build",
+    "dev": "remix vite:dev",
+    "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+    "start": "remix-serve build/server/index.js",
+    "typecheck": "tsc",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "test-storybook": "test-storybook",
+    "test-storybook-coverage": "test-storybook -- --coverage && nyc report --reporter=lcov -t coverage/storybook --report-dir coverage/storybook"
+  },
+```

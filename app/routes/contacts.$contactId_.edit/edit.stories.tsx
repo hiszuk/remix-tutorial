@@ -34,7 +34,7 @@ const meta: Meta<typeof EditContact> = {
         ],
         initialIndex: 1,
       })
-    }
+    },
   ],
   tags: ['autodocs'],
 };
